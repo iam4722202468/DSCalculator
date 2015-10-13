@@ -122,7 +122,7 @@ void backspace(int amount)
 
 void calcpressed(std::string touched, int x, int y)
 {
-	if(help)
+	/*if(help)
 	{
 		help = false;
 		printf("%s\n", buttonhelp[x][y].c_str());
@@ -131,7 +131,8 @@ void calcpressed(std::string touched, int x, int y)
 	{
 		help = true;
 	}
-	else if(touched == "=")
+	else */
+	if(touched == "=")
 	{
 		if(mode != 3 && mode != 0)
 		{

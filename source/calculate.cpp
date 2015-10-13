@@ -206,7 +206,7 @@ void function(int start, std::vector<std::string>& equation)
 					
 					solve_simple(place, equation);
 					
-					if(g_mode == 0)
+					if(g_mode == 2)
 						answer = sin(atof(equation.at(place+1).c_str())*PI/180);
 					else
 						answer = sin(atof(equation.at(place+1).c_str()));
