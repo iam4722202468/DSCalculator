@@ -10,6 +10,7 @@
 
 #include "calculator.h"
 #include "graph.h"
+#include "factor.h"
 
 PrintConsole topScreen;
 
@@ -19,7 +20,7 @@ std::string lastanswer = "";
 std::string lastequation = "";
 
 bool ispressed = false;
-int mode = 1;
+int mode = 0;
 int frameCounter = 0;
 bool cursorOnScreen;
 
@@ -42,12 +43,12 @@ std::string buttonhelp[6][8] = {
 {"New line","The number 0...","Decimal","Exponent","Root","Comma","Returns help information for button","Equals"}};
 
 int mapped[6][8][4] = {
-	6,3, 34,30,   38,3,65,30,    70,3,96,30,    101,3,128,30,    133,3,160,30,    165,3,192,30,		197,3,224,30,		229,3,256,30,
-	6,35,34,60,   38,35,65,60,   70,35,96,60,   101,35,128,60,   133,35,160,60,   165,35,192,60,	197,35,224,60,		229,35,256,60,
-	6,65,34,93,   38,65,65,93,   70,65,96,93,   101,65,128,93,   133,65,160,93,   165,65,192,93,	197,65,224,93,		229,65,256,93,
-	6,98,34,125,  38,98,65,125,  70,98,96,125,  101,98,128,125,  133,98,160,125,  165,98,192,125,	197,98,224,125,		229,98,256,125,
-	6,128,34,155, 38,128,65,155, 70,128,96,155, 101,128,128,155, 133,128,160,155, 165,128,192,155,	197,128,224,155,	229,128,256,155,
-	6,160,34,187, 38,160,65,187, 70,160,96,187, 101,160,128,187, 133,160,160,187, 165,160,192,187,	197,160,224,187,	229,160,256,187};
+	6,3, 34,30,   38,3,65,30,    68,3,96,30,    101,3,128,30,    132,3,160,30,    162,3,190,30,		194,3,221,30,		225,3,252,30,
+	6,35,34,60,   38,35,65,60,   68,35,96,60,   101,35,128,60,   132,35,160,60,   162,35,190,60,	194,35,221,60,		225,35,252,60,
+	6,65,34,93,   38,65,65,93,   68,65,96,93,   101,65,128,93,   132,65,160,93,   162,65,190,93,	194,65,221,93,		225,65,252,93,
+	6,98,34,125,  38,98,65,125,  68,98,96,125,  101,98,128,125,  132,98,160,125,  162,98,190,125,	194,98,221,125,		225,98,252,125,
+	6,128,34,155, 38,128,65,155, 68,128,96,155, 101,128,128,155, 132,128,160,155, 162,128,190,155,	194,128,221,155,	225,128,252,155,
+	6,160,34,187, 38,160,65,187, 68,160,96,187, 101,160,128,187, 132,160,160,187, 162,160,190,187,	194,160,221,187,	225,160,252,187};
 
 void sleep(int time)
 {
@@ -59,29 +60,50 @@ void sleep(int time)
 	return;
 }
 
-void setmode()
+void clearAll()
 {
 	consoleClear();
+	lastlength.clear();
+	lastlength.push_back(0);
+	equation = "";
 	
 	if(mode == 1)
+		printf("\t Calculator Mode: Degrees\n\n");
+	else if(mode == 2)
+		printf("\t Calculator Mode: Radians\n\n");
+	else if(mode == 3)
+		printf("\t Graph Mode\n\n");
+	else if(mode == 0)
+		printf("\t Find factor for x^3\n\n");
+	return;
+}
+
+void setmode()
+{
+	if(mode == 0)
 	{    
 		videoSetMode(MODE_0_2D);
 		vramSetBankA(VRAM_A_MAIN_BG);
 		consoleInit(&topScreen, 3,BgType_Text4bpp, BgSize_T_256x256, 31, 0, true, true);
 		consoleSelect(&topScreen);
 		
-		printf("\t Calculator Mode: Degrees\n\n");
-		mode=0;
+		mode=1;
+		clearAll();
+	}
+	else if(mode == 1)
+	{
+		mode=2;
+		clearAll();		
 	}
 	else if(mode == 2)
 	{
-		printf("\t Graph Mode\n\n");
-		mode=1;
+		mode=3;
+		clearAll();
 	}
-	else if(mode == 0)
+	else if(mode == 3)
 	{
-		printf("\t Calculator Mode: Radians\n\n");
-		mode=2;				
+		mode=0;
+		clearAll();			
 	}
 	
 	return;
@@ -111,7 +133,7 @@ void calcpressed(std::string touched, int x, int y)
 	}
 	else if(touched == "=")
 	{
-		if(mode != 1)
+		if(mode != 3 && mode != 0)
 		{
 			lastequation = equation;
 			lastanswer = solve(equation, mode);
@@ -120,8 +142,17 @@ void calcpressed(std::string touched, int x, int y)
 			lastlength.push_back(0);
 			equation = "";
 		}
-		else
+		else if(mode == 3)
 			graph(equation);
+		else if(mode == 0)
+		{
+			lastequation = equation;
+			lastanswer = factor(equation);
+			printf("=\x1b[41;1m%s\x1b[37;1m\n", lastanswer.c_str());
+			lastlength.clear();
+			lastlength.push_back(0);
+			equation = "";
+		}
 	}
 	else if(touched == "B")
 	{
@@ -133,15 +164,9 @@ void calcpressed(std::string touched, int x, int y)
 	}
 	else if(touched == "CA")
 	{
-		consoleClear();
-		lastlength.clear();
-		lastlength.push_back(0);
-		equation = "";
-		setmode();
-		setmode();
-		setmode();
+		clearAll();
 	}
-	else if(touched == "X" && mode != 1)
+	else if(touched == "X" && (mode == 1 || mode == 2))
 	{
 		equation += lastanswer;
 		printf("%s", lastanswer.c_str());
@@ -165,10 +190,6 @@ void calcpressed(std::string touched, int x, int y)
 	}
 	else if(touched == "M")
 	{
-		consoleClear();
-		lastlength.clear();
-		lastlength.push_back(0);
-		equation = "";
 		setmode();
 	}
 	else
